@@ -2,7 +2,7 @@
 # Script: Three Parks Savanna Fire-effects Plot Network: The effect of fire
 #         treatment on soil properties
 # Author: Luke Florence
-# Date:   21 Janurary 2024
+# Date:   22 Janurary 2024
 
 # Note: Models have previously undergone fit tests and have been assessed for 
 # appropriate structure and transformations. Models fit on a Gaussian
