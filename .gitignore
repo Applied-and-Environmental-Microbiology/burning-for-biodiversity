@@ -8,6 +8,7 @@ output/*
 # Exploritory code
 code/Data_exploration.R
 code/Treatment_effects.R
+code/SEM.R
 
 # History files
 .Rhistory
