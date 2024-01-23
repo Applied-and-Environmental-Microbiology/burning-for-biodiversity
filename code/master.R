@@ -28,7 +28,7 @@ source("code/functions.R")
 data <- read.csv("data/data.csv", stringsAsFactors = TRUE) %>%
   # Order levels
   mutate(treatment = factor(treatment, levels = c(
-    "U", "E5", "E4", "E3", "L2", "E2", "E1"))
+    "U", "E5", "E4", "E3", "E2","L2", "E1"))
   ) %>%
   glimpse(.)
 
@@ -485,9 +485,9 @@ mean_effect_fungi <- parameters(
     Coefficient, CI_low, CI_high
   ) %>%
   mutate(
-    treatment = c("U", "E5", "E3", "L2", "E2", "E1"),
+    treatment = c("U", "E5", "E3", "E2", "L2", "E1"),
     treatment = factor(treatment, levels = c(
-      "U", "E5", "E3", "L2", "E2", "E1"))
+      "U", "E5", "E3", "E2", "L2", "E1"))
   )
 
 # Format pairwise comparisons data frame
@@ -599,9 +599,9 @@ mean_effect_bacteria <- parameters(
     Coefficient, CI_low, CI_high
   ) %>%
   mutate(
-    treatment = c("U", "E5", "E3", "L2", "E2", "E1"),
+    treatment = c("U", "E5", "E3", "E2", "L2", "E1"),
     treatment = factor(treatment, levels = c(
-      "U", "E5", "E3", "L2", "E2", "E1"))
+      "U", "E5", "E3", "E2", "L2", "E1"))
   )
 
 # Format pairwise comarisons data frame
@@ -711,9 +711,9 @@ mean_effect_carbon <- parameters(
     Coefficient, CI_low, CI_high
   ) %>%
   mutate(
-    treatment = c("U", "E5", "E3", "L2", "E2", "E1"),
+    treatment = c("U", "E5", "E3", "E2", "L2", "E1"),
     treatment = factor(treatment, levels = c(
-      "U", "E5", "E3", "L2", "E2", "E1"))
+      "U", "E5", "E3", "E2", "L2", "E1"))
   )
 
 # Create effect size plot
@@ -770,9 +770,9 @@ mean_effect_CN <- parameters(
     Coefficient, CI_low, CI_high
   ) %>%
   mutate(
-    treatment = c("U", "E5", "E3", "L2", "E2", "E1"),
+    treatment = c("U", "E5", "E3", "E2", "L2", "E1"),
     treatment = factor(treatment, levels = c(
-      "U", "E5", "E3", "L2", "E2", "E1"))
+      "U", "E5", "E3", "E2", "L2", "E1"))
   )
 
 # Carbon-to-nitrogen: Format pairwise comarisons data frame
@@ -842,9 +842,9 @@ mean_effect_pH <- parameters(
     Coefficient, CI_low, CI_high
   ) %>%
   mutate(
-    treatment = c("U", "E5", "E3", "L2", "E2", "E1"),
+    treatment = c("U", "E5", "E3", "E2", "L2", "E1"),
     treatment = factor(treatment, levels = c(
-      "U", "E5", "E3", "L2", "E2", "E1"))
+      "U", "E5", "E3", "E2", "L2", "E1"))
   )
 # pH: Format pairwise comarisons data frame
 pairwise_plot_pH <- pairwise_pH %>%
