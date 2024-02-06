@@ -11,16 +11,19 @@
 # have undertaken a novel approach to SEM model selection (see notes in section
 # (9) Structural equation models) I include the model selection process within
 # the corresponding section.
-
+require(multcompView)
 # Required packages and functions:
 require(lme4)
 require(emmeans)
+require(ggeffects)
 require(performance)
 require(parameters)
 require(DHARMa)
 require(openxlsx)
 require(patchwork)
+require(viridis)
 require(ggpubr)
+require(piecewiseSEM)
 require(tidyverse)
 source("code/functions.R")
 
@@ -465,12 +468,12 @@ means_fungi <- ggplot(
      axis.text.x = element_blank()
      ) +
   annotate(
-    "text", x = -0.75, y = (max(observed_values_fungi$rate) + 0.01), 
+    "text", x = -0.5, y = (max(observed_values_fungi$rate) + 0.01), 
     label = "b", size = 5, fontface = "bold"
     ) +
   coord_cartesian(
     # This allows me to annotate outside panel borders, but it also emboldens
-    # the panel borders so Iinclude this line in all plots regardless of
+    # the panel borders so include this line in all plots regardless of
     # annotation
     xlim = c(1, 6), clip = "off"
     )
@@ -524,8 +527,11 @@ effects_fungi <- ggplot(
       0.7)
   ) +
   scale_y_continuous(limits = c(-1, 1)) +
-  xlab("Fire treatment") +
-  ylab(NULL) +
+  theme(
+    axis.text.x = element_blank()
+  ) +
+  xlab(NULL) +
+  ylab("Mean Difference in Effect Size") +
   MyTheme() +
   coord_cartesian(
     xlim = c(1, 6), clip = "off"
@@ -582,7 +588,7 @@ means_bacteria <- ggplot(
     axis.text.x = element_blank()
     ) + 
   annotate(
-    "text", x = -0.75, y = 15, 
+    "text", x = -0.5, y = 15, 
     label = "a", size = 5, fontface = "bold"
     ) +
   coord_cartesian(
@@ -638,6 +644,9 @@ effects_bacteria <- ggplot(
       0.7)
   ) +
   scale_y_continuous(limits = c(-1, 1)) +
+  theme(
+    axis.text.x = element_blank()
+  ) +
   xlab(NULL) +
   ylab("Mean Difference in Effect Size") +
   MyTheme() +
@@ -687,15 +696,12 @@ means_carbon <- ggplot(
     values = pal
   ) +
   scale_y_continuous(limits = c(0, 3)) +
-  xlab(NULL) +
+  xlab("Fire Treatment") +
   ylab("Organic Carbon (%)") +
   MyTheme() +
-  theme(
-    axis.text.x = element_blank()
-    ) + 
   annotate(
-    "text", x = -0.75, y = 3, 
-    label = "c", size = 5, fontface = "bold"
+    "text", x = -0.5, y = 3, 
+    label = "d", size = 5, fontface = "bold"
     ) +
   coord_cartesian(
     xlim = c(1, 6), clip = "off"
@@ -739,23 +745,118 @@ effects_carbon <- ggplot(
       0.7)
   ) +
   scale_y_continuous(limits = c(-1, 1)) +
-  xlab(NULL) +
-  ylab(NULL) +
+  xlab("Fire Treatment") +
+  ylab("Mean Difference in Effect Size") +
   MyTheme() +
   coord_cartesian(
     xlim = c(1, 6), clip = "off"
     )
 
-#### (8d) Join and save Figure 2 ####
-main_plots <- 
-  means_bacteria + means_fungi + means_carbon + 
-  effects_bacteria + effects_fungi + effects_carbon + 
-  plot_layout(nrow = 2)
-ggsave("output/Figure1.jpeg", width = 7, height = 4.5)
-ggsave("output/Figure1.tiff", width = 7, height = 4.5)
-ggsave("output/Figure1.pdf", width = 7, height = 4.5)
+#### (8d) Fungal to bacterial ratio  ####
+observed_values_ratio <- data %>%
+  select(
+    treatment, mean = fungi_bacteria_ratio
+  ) %>%
+  mutate(
+    lower_CI = mean,
+    upper_CI = mean,
+    SE = mean)
 
-#### (8e) Additional effects plots ####
+# Observed values and marginal means plot
+means_ratio <- ggplot(
+  data = estimate_ratio,
+  aes(x = treatment,
+      ymin = lower_CI,
+      lower = mean - SE,
+      middle = mean,
+      upper = mean + SE,
+      ymax = upper_CI,
+      fill = treatment)
+)  +
+  geom_boxplot(stat = 'identity', alpha = 0.6) +
+  geom_point(
+    observed_values_ratio,
+    mapping = aes(x = treatment, y = mean, fill = treatment),
+    position = position_jitter(seed = 1986, width = 0.25),
+    shape = 21, size = 1, stroke = 0.25
+  ) +
+  scale_fill_manual(
+    values = pal
+  ) +
+  scale_y_continuous(limits = c(0, 3)) +
+  xlab(NULL) +
+  ylab("Fungal-to-Bacterial Ratio") +
+  MyTheme() +
+  theme(
+    axis.text.x = element_blank()
+  ) + 
+  annotate(
+    "text", x = -0.5, y = 3, 
+    label = "c", size = 5, fontface = "bold"
+  ) +
+  coord_cartesian(
+    xlim = c(1, 6), clip = "off"
+  )
+
+# Effect size means
+mean_effect_ratio <- parameters(
+  model_ratio,
+  effects = "fixed"
+) %>%
+  as_tibble() %>%
+  select(
+    Coefficient, CI_low, CI_high
+  ) %>%
+  mutate(
+    treatment = c("U", "E5", "E3", "E2", "L2", "E1"),
+    treatment = factor(treatment, levels = c(
+      "U", "E5", "E3", "E2", "L2", "E1"))
+  )
+
+# Create effect size plot
+effects_ratio <- ggplot(
+  mean_effect_ratio,
+  aes(x = treatment, y = Coefficient, fill = treatment)) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dotted",
+    linewidth = 0.5
+  ) +
+  geom_errorbar(
+    mapping = aes(x = treatment, ymax = CI_high, ymin = CI_low),
+    color = "black",
+    width = 0,
+    linewidth = 0.7
+  ) +
+  geom_point(
+    shape = 16, size = 3,
+    colour = alpha(c(
+      "#FEAF77FF", "#F1605DFF", "#B63679FF",
+      "#721F81FF", "#2D1160FF", "#000004FF"),
+      0.7)
+  ) +
+  scale_y_continuous(limits = c(-1, 1)) +
+  theme(
+    axis.text.x = element_blank()
+  ) +
+  xlab(NULL) +
+  ylab("Mean Difference in Effect Size") +
+  MyTheme() +
+  coord_cartesian(
+    xlim = c(1, 6), clip = "off"
+  )
+
+
+#### (8e) Join and save Figure 2 ####
+main_plots <- 
+  means_bacteria + effects_bacteria + means_fungi + effects_fungi +
+  means_ratio + effects_ratio + means_carbon + effects_carbon + 
+  plot_layout(ncol = 2)
+ggsave("output/Figure1.jpeg", width = 4.75, height = 8.4)
+ggsave("output/Figure1.tiff", width = 4.75, height = 8.4)
+ggsave("output/Figure1.pdf", width = 4.75, height = 8.4)
+
+#### (8f) Additional effects plots ####
 
 # Will make effects plots here, which will be used to aid the interpretation of
 # the SEMs below
@@ -814,6 +915,9 @@ effects_CN <- ggplot(
     limits = c(-10, 6),
     breaks = c(-10, -5, 0, 5)
     ) +
+  theme(
+    axis.text.x = element_blank()
+  ) +
   xlab(NULL) +
   ylab("Mean Difference in Effect Size") +
   MyTheme() +
@@ -830,6 +934,12 @@ effects_CN <- ggplot(
     bracket.size = 0.2,
     label.size = 2.5,
     label = "p_value"
+  ) +
+  coord_cartesian(
+    # This allows me to annotate outside panel borders, but it also emboldens
+    # the panel borders so include this line in all plots regardless of
+    # annotation
+    xlim = c(1, 6), clip = "off"
   )
 
 # pH: Format mean effect size data frame
@@ -885,7 +995,7 @@ effects_pH <- ggplot(
     limits = c(-0.2, 0.515),
     breaks = c(-0.2, 0, 0.2, 0.4)
     ) +
-  xlab(NULL) +
+  xlab("Fire Treatment") +
   ylab("Mean Difference in Effect Size") +
   MyTheme() +
   annotate(
@@ -901,15 +1011,24 @@ effects_pH <- ggplot(
     bracket.size = 0.2,
     label.size = 2.5,
     label = "p_value"
+  ) +
+  coord_cartesian(
+    # This allows me to annotate outside panel borders, but it also emboldens
+    # the panel borders so include this line in all plots regardless of
+    # annotation
+    xlim = c(1, 6), clip = "off"
   )
 
 # Join and save components b and c of Figure 2
 SEM_plots <- 
   effects_CN + effects_pH + 
   plot_layout(ncol = 1)
-ggsave("output/Figure2.jpeg", width = 2.5, height = 4.5)
-ggsave("output/Figure2.tiff", width = 2.5, height = 4.5)
-ggsave("output/Figure2.pdf", width = 2.5, height = 4.5)
+ggsave("output/Figure2_bc.jpeg", width = 2.5, height = 4.5)
+ggsave("output/Figure2_bc.tiff", width = 2.5, height = 4.5)
+ggsave("output/Figure2_bc.pdf", width = 2.5, height = 4.5)
+
+# Clean up the environment
+rm(list = ls())
 
 ### (9) Structural equation models #############################################
 
@@ -975,6 +1094,7 @@ sem_fungi_full <- psem(
   )
   )
 # Evaluate Significance values
+
 coefs(sem_fungi_full) %>%
   select(Response, Predictor, Crit.Value, P.Value)
 # Remove 'organic_carbon' from the 'fungi_abundance' model
@@ -1602,7 +1722,319 @@ SEM_fit_bacteria <- data.frame(
 # Grab coefficients of the best-fit model
 SEM_coefs_bacteria <- coefs(sem_bacteria_4)
 
-#### (9c) Save the SEM test statistics ####
+#### (9c) Fungi to bacteria ratio ##### 
+
+# A priori SEM
+sem_ratio_full <- psem(
+  lmer(
+    fungi_bacteria_ratio ~ treatment + organic_carbon + log(nitrogen) + 
+      carbon_nitrogen_ratio + pH + (1 | block),
+    data
+  ),
+  
+  lmer(
+    organic_carbon ~ treatment + (1 | block),
+    data
+  ),
+  
+  lmer(
+    log(nitrogen) ~ treatment + (1 | block),
+    data
+  ),
+  
+  lmer(
+    carbon_nitrogen_ratio ~ treatment + (1 | block),
+    data
+  ),
+  
+  lmer(
+    pH ~ treatment + (1 | block),
+    data
+  )
+)
+# Evaluate Significance values
+coefs(sem_ratio_full) %>%
+  select(Response, Predictor, Crit.Value, P.Value)
+# Remove the 'pH ~ treatment' model
+# Extract AICc
+aic_ratio_full <- AIC_psem(sem_ratio_full)$AICc
+
+# Reduced SEM 1
+sem_ratio_1 <- psem(
+  lmer(
+    fungi_bacteria_ratio ~ treatment + organic_carbon + log(nitrogen) + 
+      carbon_nitrogen_ratio + (1 | block),
+    data
+  ),
+  
+  lmer(
+    organic_carbon ~ treatment + (1 | block),
+    data
+  ),
+  
+  lmer(
+    log(nitrogen) ~ treatment + (1 | block),
+    data
+  ),
+  
+  lmer(
+    carbon_nitrogen_ratio ~ treatment + (1 | block),
+    data
+  ),
+  
+  lmer(
+    pH ~ treatment + (1 | block),
+    data
+  )
+)
+# Evaluate significance values
+coefs(sem_ratio_1) %>%
+  select(Response, Predictor, Crit.Value, P.Value)
+# Remove the 'organic_carbon ~ treatment' model
+# Extract AICc
+aic_ratio_1 <- AIC_psem(sem_ratio_1)$AICc
+# Compute delta AIC
+aic_ratio_full - aic_ratio_1
+
+# Reduced model 2
+sem_ratio_2 <- psem(
+  lmer(
+    fungi_bacteria_ratio ~ treatment + organic_carbon + log(nitrogen) + 
+      carbon_nitrogen_ratio + (1 | block),
+    data
+  ),
+  
+  lmer(
+    log(nitrogen) ~ treatment + (1 | block),
+    data
+  ),
+  
+  lmer(
+    carbon_nitrogen_ratio ~ treatment + (1 | block),
+    data
+  ),
+  
+  lmer(
+    pH ~ treatment + (1 | block),
+    data
+  )
+)
+# Evaluate Significance values
+coefs(sem_ratio_2) %>%
+  select(Response, Predictor, Crit.Value, P.Value)
+# Remove 'treatment' from the 'fungi_bacteria_ratio' model
+# Extract AICc
+aic_ratio_2 <- AIC_psem(sem_ratio_2)$AICc
+# Compute delta AIC
+aic_ratio_1 - aic_ratio_2
+
+# Reduced model 3
+sem_ratio_3 <- psem(
+  lmer(
+    fungi_bacteria_ratio ~ organic_carbon + log(nitrogen) + 
+      carbon_nitrogen_ratio + (1 | block),
+    data
+  ),
+  
+  lmer(
+    log(nitrogen) ~ treatment + (1 | block),
+    data
+  ),
+  
+  lmer(
+    carbon_nitrogen_ratio ~ treatment + (1 | block),
+    data
+  ),
+  
+  lmer(
+    pH ~ treatment + (1 | block),
+    data
+  )
+)
+# Evaluate Significance values
+coefs(sem_ratio_3) %>%
+  select(Response, Predictor, Crit.Value, P.Value)
+# Remove the 'log(nitrogen) ~ treatment' model
+# Extract AICc
+aic_ratio_3 <- AIC_psem(sem_ratio_3)$AICc
+# Compute delta AIC
+aic_ratio_2 - aic_ratio_3
+
+# Reduced model 4
+sem_ratio_4 <- psem(
+  lmer(
+    fungi_bacteria_ratio ~ organic_carbon + log(nitrogen) + 
+      carbon_nitrogen_ratio + (1 | block),
+    data
+  ),
+  
+  lmer(
+    carbon_nitrogen_ratio ~ treatment + (1 | block),
+    data
+  ),
+  
+  lmer(
+    pH ~ treatment + (1 | block),
+    data
+  )
+)
+# Evaluate Significance values
+coefs(sem_ratio_4) %>%
+  select(Response, Predictor, Crit.Value, P.Value)
+# Remove 'log(nitrogen)' from the 'fungi_bacteria_ratio' model
+# Extract AICc
+aic_ratio_4 <- AIC_psem(sem_ratio_4)$AICc
+# Compute delta AIC
+aic_ratio_3 - aic_ratio_4
+
+# Reduced model 5
+sem_ratio_5 <- psem(
+  lmer(
+    fungi_bacteria_ratio ~ organic_carbon +
+      carbon_nitrogen_ratio + (1 | block),
+    data
+  ),
+  
+  lmer(
+    carbon_nitrogen_ratio ~ treatment + (1 | block),
+    data
+  ),
+  
+  lmer(
+    pH ~ treatment + (1 | block),
+    data
+  )
+)
+# Evaluate Significance values
+coefs(sem_ratio_5) %>%
+  select(Response, Predictor, Crit.Value, P.Value)
+# Remove 'organic_carbon' from 'fungi_bacteria_ratio' model
+# Extract AICc
+aic_ratio_5 <- AIC_psem(sem_ratio_5)$AICc
+# Compute delta AIC
+aic_ratio_4 - aic_ratio_5
+# !!!Stop!!!
+
+# Create a list of models
+sem_models_ratio <- list(
+  sem_ratio_full, sem_ratio_1, sem_ratio_2, sem_ratio_3, 
+  sem_ratio_4
+)
+
+# Combine LLChisq stats
+
+# Step 1: Extract and format LLChisq stats
+LLChisq_ratio <- map(
+  sem_models_ratio, ~ LLchisq(.x) %>%
+    mutate(
+      formatted_result = sprintf("%.2f(%d), p = %.3f", Chisq, df, P.Value)
+    ) %>%
+    pull(formatted_result)
+)
+
+# Step 2: Combine the formatted results into a single vector
+LLChisq_ratio <- unlist(LLChisq_ratio)
+
+# Combine FisherC stats:
+
+# Step 1: Create an empty list to store results
+Fisher_C_ratio_list <- list()
+
+# Step 2: Loop through the list of SEM models
+for (model in sem_models_ratio) {
+  # Extract FisherC stats
+  fisher_c_stats <- summary(model) %>%
+    unlist(.) %>%
+    as.data.frame(
+      ., stringsAsFactors = FALSE
+    ) %>%
+    rownames_to_column(var = "name") %>%
+    filter(
+      name %in% c("Cstat.Fisher.C", "Cstat.df", "Cstat.P.Value")
+    ) %>%
+    column_to_rownames(var = "name") %>%
+    mutate(across(everything(), as.numeric)) %>%
+    t(.) %>%
+    as_tibble(.) %>%
+    mutate(
+      formatted_result = sprintf(
+        "%.2f(%d), p = %.3f",
+        Cstat.Fisher.C, Cstat.df, Cstat.P.Value)
+    ) %>%
+    pull(formatted_result)
+  
+  # Append the results to the list
+  Fisher_C_ratio_list[[length(Fisher_C_ratio_list) + 1]] <- fisher_c_stats
+}
+
+# Step 3: Combine the formatted results into a single vector
+Fisher_C_ratio <- unlist(Fisher_C_ratio_list)
+
+# Combine model structures:
+
+# Step 1: Create an empty list to store results
+model_call_list <- list()
+
+# Step 2: Loop through the list of SEM models
+for (model in sem_models_ratio) {
+  # Extract call information
+  call_info <- summary(model) %>%
+    unlist(.) %>%
+    as.data.frame(
+      ., stringsAsFactors = FALSE
+    ) %>%
+    slice(2) %>%
+    pull()
+  
+  # Assign column names to the call information
+  names(call_info) <- "call"
+  
+  # Store the call information in the list
+  model_call_list[[length(model_call_list) + 1]] <- call_info
+}
+
+# Step 3: Reduce to a single data frame
+model_call_df <- bind_rows(model_call_list, .id = "model")
+
+# Compute standardised model weights:
+
+# Step 1: Combine AIC values
+aic_values <- c(
+  aic_ratio_full, aic_ratio_1, aic_ratio_2, aic_ratio_3,
+  aic_ratio_4
+)
+
+# Step 2: Identify the model with the lowest AIC
+best_model_index <- which.min(aic_values)
+
+# Step 3: Calculate the difference in AIC for each model
+delta_aic <- aic_values - aic_values[best_model_index]
+
+# Step 4: Compute unnormalised weights
+weights <- exp(-delta_aic / 2)
+
+# Step 5: Normalise weights
+normalised_weights <- weights / sum(weights)
+
+# Step 6: Assess the results
+SEM_fit_ratio <- data.frame(
+  model = c("full", 2:length(aic_values)-1), 
+  AIC = aic_values, 
+  Δ_AIC = delta_aic,
+  model_weight = round(normalised_weights, digits = 3)
+) %>%
+  mutate(
+    Δ_model_weight = c(0, diff(model_weight)),
+    "LL_χ2(df)" = LLChisq_ratio,
+    "Fisher_C(df)" = Fisher_C_ratio,
+    model_structure = model_call_df$call
+  ) %>%
+  print(.)
+
+# Grab coefficients of the best-fit model
+SEM_coefs_ratio <- coefs(sem_ratio_4)
+
+#### (9d) Save the SEM test statistics ####
 
 # Read in the test statistics workbook
 test_statistics_wb <- loadWorkbook(
@@ -1611,7 +2043,8 @@ test_statistics_wb <- loadWorkbook(
 
 # Define sheet names
 sheet_names <- c(
-  "SEM_fit_fungi", "SEM_fit_bacteria", "SEM_coefs_fungi", "SEM_coefs_bacteria"
+  "SEM_fit_fungi", "SEM_fit_bacteria","SEM_fit_ratio",
+  "SEM_coefs_fungi", "SEM_coefs_bacteria", "SEM_coefs_ratio"
   )
 
 # Loop through sheet names
@@ -1626,7 +2059,7 @@ for (sheet_name in sheet_names) {
   writeData(test_statistics_wb, sheet = sheet_name, x = df)
 }
 
-# Check the sheets have been writen
+# Check the sheets have been written
 read.xlsx(test_statistics_wb, sheet = "SEM_fit_fungi")
 
 # Save the workbook
