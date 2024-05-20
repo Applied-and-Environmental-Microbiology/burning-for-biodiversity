@@ -1054,7 +1054,7 @@ ggsave("output/Figure1.jpeg", width = 4.75, height = 8.4)
 ggsave("output/Figure1.tiff", width = 4.75, height = 8.4)
 ggsave("output/Figure1.pdf", width = 4.75, height = 8.4)
 
-#### (8f) Additional effects plots ####
+#### (8f) Additional effects plots: Main text ####
 
 # Will make effects plots here, which will be used to aid the interpretation of
 # the SEMs below
@@ -1110,15 +1110,15 @@ effects_CN <- ggplot(
       0.7)
   ) +
   scale_y_continuous(
-    limits = c(-10, 6),
+    limits = c(-10, 6.05),
     breaks = c(-10, -5, 0, 5)
     ) +
   xlab("Fire Treatment") +
-  ylab("Mean Difference in Effect Size") +
+  ylab(NULL) +
   MyTheme() +
   annotate(
-    "text", x = 0.7, y = 6 * 0.975, 
-    label = "b", size = 5, fontface = "bold"
+    "text", x = 0.7, y = 6.05 * 0.975, 
+    label = "e", size = 5, fontface = "bold"
   ) +
   # Add pairwise comparisons
   stat_pvalue_manual(
@@ -1137,9 +1137,9 @@ effects_CN <- ggplot(
     xlim = c(1, 6), clip = "off"
   )
 
-# pH: Format mean effect size data frame
-mean_effect_pH <- parameters(
-  model_pH,
+# Ancient grass cover: Format mean effect size data frame
+mean_effect_ancient_grass <- parameters(
+  model_ancient_grass,
   effects = "fixed"
 ) %>%
   as_tibble() %>%
@@ -1152,22 +1152,22 @@ mean_effect_pH <- parameters(
       "U", "E5", "E3", "E2", "L2", "E1"))
   )
 
-# pH: Format pairwise comarisons data frame
-pairwise_plot_pH <- pairwise_pH %>%
+# Ancient grass cover: Format pairwise comarisons data frame
+pairwise_plot_ancient_grass <- pairwise_ancient_grass %>%
   select(treatment, p_value) %>%
   filter(p_value <= 0.05) %>%
   mutate(
     group1 = word(treatment, 1, sep = " - "),
     group2 = word(treatment, 2, sep = " - "),
     p_value = case_when(
-      treatment == "U - E3" ~ "0.050",
+      treatment == "E3 - E1" ~ "< 0.001",
       TRUE ~ as.character(p_value)
+    )
   )
-)
 
-# pH: Create effect size plot
-effects_pH <- ggplot(
-  mean_effect_pH,
+# Ancient grass cover: Create effect size plot
+effects_ancient_grass <- ggplot(
+  mean_effect_ancient_grass,
   aes(x = treatment, y = Coefficient, fill = treatment)) +
   geom_hline(
     yintercept = 0,
@@ -1188,21 +1188,21 @@ effects_pH <- ggplot(
       0.7)
   ) +
   scale_y_continuous(
-    limits = c(-0.2, 0.515),
-    breaks = c(-0.2, 0, 0.2, 0.4)
+    limits = c(-4, 4.15),
+    breaks = c(-4, -2, 0, 2, 4)
     ) +
-  xlab("Fire Treatment") +
-  ylab(NULL) +
+  xlab(NULL) +
+  ylab("Mean Difference in Effect Size") +
   MyTheme() +
   annotate(
-    "text", x = 0.7, y = 0.515 * 0.975, 
-    label = "c", size = 5, fontface = "bold"
+    "text", x = 0.7, y = 4.15 * 0.9775, 
+    label = "b", size = 5, fontface = "bold"
   ) +
   # Add pairwise comparisons
   stat_pvalue_manual(
-    data = pairwise_plot_pH, 
-    y.position = 0.40,
-    step.increase = 0.0125,
+    data = pairwise_plot_ancient_grass, 
+    y.position = 2.5,
+    step.increase = 0.0482,
     tip.length = 0.005,
     bracket.size = 0.2,
     label.size = 2.5,
@@ -1215,9 +1215,9 @@ effects_pH <- ggplot(
     xlim = c(1, 6), clip = "off"
   )
 
-# vegetation: Format mean effect size data frame
-mean_effect_vegetation <- parameters(
-  model_vegetation,
+# Modern grass cover: Format mean effect size data frame
+mean_effect_modern_grass <- parameters(
+  model_modern_grass,
   effects = "fixed"
 ) %>%
   as_tibble() %>%
@@ -1230,22 +1230,27 @@ mean_effect_vegetation <- parameters(
       "U", "E5", "E3", "E2", "L2", "E1"))
   )
 
-# vegetation: Format pairwise comarisons data frame
-pairwise_plot_vegetation <- pairwise_vegetation %>%
+# Modern grass cover: Format pairwise comarisons data frame
+pairwise_plot_modern_grass <- pairwise_modern_grass %>%
   select(treatment, p_value) %>%
   filter(p_value <= 0.05) %>%
   mutate(
     group1 = word(treatment, 1, sep = " - "),
     group2 = word(treatment, 2, sep = " - "),
     p_value = case_when(
-      treatment == "U - E3" ~ "0.050",
+      treatment == "U - E2" ~ "< 0.001",
+      treatment == "U - L2" ~ "< 0.001",
+      treatment == "U - E1" ~ "< 0.001",
+      treatment == "E5 - L2" ~ "< 0.001",
       TRUE ~ as.character(p_value)
     )
   )
 
-# vegetation: Create effect size plot
-effects_vegetation <- ggplot(
-  mean_effect_vegetation,
+# Modern grass cover: Create effect size plot
+effects_modern_grass <- ggplot(
+  mean_effect_modern_grass %>%
+    mutate(across(where(is.numeric), ~ if_else(row_number() == 1, . * 100, .))) %>%
+    ungroup(),
   aes(x = treatment, y = Coefficient, fill = treatment)) +
   geom_hline(
     yintercept = 0,
@@ -1266,21 +1271,292 @@ effects_vegetation <- ggplot(
       0.7)
   ) +
   scale_y_continuous(
-    limits = c(-7, 12),
-    breaks = c(-5, 0, 5, 10, 15)
+    limits = c(-0.5, 12.75),
+    breaks = c(0, 2, 4, 6, 8, 10, 12)
+  ) +
+  xlab(NULL) +
+  ylab(NULL) +
+  MyTheme() +
+  annotate(
+    "text", x = 0.7, y = 12.75 * 0.99, 
+    label = "c", size = 5, fontface = "bold"
+  ) +
+  # Add pairwise comparisons
+  stat_pvalue_manual(
+    data = pairwise_plot_modern_grass, 
+    y.position = 5.75,
+    step.increase = 0.001825,
+    tip.length = 0.0002,
+    bracket.size = 0.2,
+    label.size = 2.5,
+    label = "p_value"
+  ) +
+  coord_cartesian(
+    # This allows me to annotate outside panel borders, but it also emboldens
+    # the panel borders so include this line in all plots regardless of
+    # annotation
+    xlim = c(1, 6), clip = "off"
+  )
+
+# Litter cover: Format mean effect size data frame
+mean_effect_litter <- parameters(
+  model_litter,
+  effects = "fixed"
+) %>%
+  as_tibble() %>%
+  select(
+    Coefficient, CI_low, CI_high
+  ) %>%
+  mutate(
+    treatment = c("U", "E5", "E3", "E2", "L2", "E1"),
+    treatment = factor(treatment, levels = c(
+      "U", "E5", "E3", "E2", "L2", "E1"))
+  )
+
+# Litter cover: Format pairwise comarisons data frame
+pairwise_plot_litter <- pairwise_litter %>%
+  select(treatment, p_value) %>%
+  filter(p_value <= 0.05) %>%
+  mutate(
+    group1 = word(treatment, 1, sep = " - "),
+    group2 = word(treatment, 2, sep = " - "),
+    p_value = case_when(
+      treatment == "U - L2" ~ "< 0.001",
+      treatment == "E5 - L2" ~ "< 0.001",
+      TRUE ~ as.character(p_value)
+    )
+  )
+
+# Modern grass cover: Create effect size plot
+effects_litter <- ggplot(
+  mean_effect_litter,
+  aes(x = treatment, y = Coefficient, fill = treatment)) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dotted",
+    linewidth = 0.5
+  ) +
+  geom_errorbar(
+    mapping = aes(x = treatment, ymax = CI_high, ymin = CI_low),
+    color = "black",
+    width = 0,
+    linewidth = 0.7
+  ) +
+  geom_point(
+    shape = 16, size = 3,
+    colour = alpha(c(
+      "#FEAF77FF", "#F1605DFF", "#B63679FF",
+      "#721F81FF", "#2D1160FF", "#000004FF"),
+      0.7)
+  ) +
+  scale_y_continuous(
+    limits = c(-50, 39),
+    breaks = c(-40, -20, 0, 20)
   ) +
   xlab("Fire Treatment") +
   ylab("Mean Difference in Effect Size") +
   MyTheme() +
   annotate(
-    "text", x = 0.7, y = 12 * 0.975, 
+    "text", x = 0.7, y = 39 * 0.975, 
+    label = "d", size = 5, fontface = "bold"
+  ) +
+  # Add pairwise comparisons
+  stat_pvalue_manual(
+    data = pairwise_plot_litter, 
+    y.position = 18,
+    step.increase = 0.048,
+    tip.length = 0.005,
+    bracket.size = 0.2,
+    label.size = 2.5,
+    label = "p_value"
+  ) +
+  coord_cartesian(
+    # This allows me to annotate outside panel borders, but it also emboldens
+    # the panel borders so include this line in all plots regardless of
+    # annotation
+    xlim = c(1, 6), clip = "off"
+  )
+
+# Join and save components b, c, d and e of Figure 2
+SEM_plots <-
+  effects_ancient_grass + effects_modern_grass + effects_litter +
+  effects_CN +
+  plot_layout(ncol = 2)
+ggsave("output/Figure2_bcde.jpeg", width = 4.4, height = 4.3)
+ggsave("output/Figure2_bcde.tiff", width = 4.4, height = 4.3)
+ggsave("output/Figure2_bcde.pdf", width = 4.4, height = 4.3)
+
+#### (8g) Additional effects plots: Main text ####
+
+# Total grass cover: Format mean effect size data frame
+mean_effect_total_grass <- parameters(
+  model_total_grass,
+  effects = "fixed"
+) %>%
+  as_tibble() %>%
+  select(
+    Coefficient, CI_low, CI_high
+  ) %>%
+  mutate(
+    treatment = c("U", "E5", "E3", "E2", "L2", "E1"),
+    treatment = factor(treatment, levels = c(
+      "U", "E5", "E3", "E2", "L2", "E1"))
+  )
+
+# Total grass cover: Format pairwise comarisons data frame
+pairwise_plot_total_grass <- pairwise_total_grass %>%
+  select(treatment, p_value) %>%
+  filter(p_value <= 0.05) %>%
+  mutate(
+    group1 = word(treatment, 1, sep = " - "),
+    group2 = word(treatment, 2, sep = " - "),
+    p_value = case_when(
+      treatment == "U - L2" ~ "< 0.001",
+      TRUE ~ as.character(p_value)
+    )
+  )
+
+# Total grass cover: Create effect size plot
+effects_total_grass <- ggplot(
+  mean_effect_total_grass %>%
+    mutate(across(where(is.numeric), ~ if_else(row_number() == 1, . * 100, .))) %>%
+    ungroup(),
+  aes(x = treatment, y = Coefficient, fill = treatment)) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dotted",
+    linewidth = 0.5
+  ) +
+  geom_errorbar(
+    mapping = aes(x = treatment, ymax = CI_high, ymin = CI_low),
+    color = "black",
+    width = 0,
+    linewidth = 0.7
+  ) +
+  geom_point(
+    shape = 16, size = 3,
+    colour = alpha(c(
+      "#FEAF77FF", "#F1605DFF", "#B63679FF",
+      "#721F81FF", "#2D1160FF", "#000004FF"),
+      0.7)
+  ) +
+  scale_y_continuous(
+    limits = c(-2, 110),
+    breaks = c(0, 20, 40, 60, 80, 100)
+  ) +
+  xlab("Fire Treatment") +
+  ylab("Mean Difference in Effect Size") +
+  MyTheme() +
+  annotate(
+    "text", x = 0.7, y = 110 * 0.985, 
     label = "b", size = 5, fontface = "bold"
   ) +
   # Add pairwise comparisons
   stat_pvalue_manual(
-    data = pairwise_plot_vegetation, 
-    y.position = 0.40,
-    step.increase = 0.0125,
+    data = pairwise_plot_total_grass, 
+    y.position = 80,
+    step.increase = 0.001,
+    tip.length = 0.0001,
+    bracket.size = 0.2,
+    label.size = 2.5,
+    label = "p_value"
+  ) +
+  coord_cartesian(
+    # This allows me to annotate outside panel borders, but it also emboldens
+    # the panel borders so include this line in all plots regardless of
+    # annotation
+    xlim = c(1, 6), clip = "off"
+  )
+effects_total_grass
+
+# Relabel litter plot
+effects_litter_2 <- ggplot(
+  mean_effect_litter,
+  aes(x = treatment, y = Coefficient, fill = treatment)) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dotted",
+    linewidth = 0.5
+  ) +
+  geom_errorbar(
+    mapping = aes(x = treatment, ymax = CI_high, ymin = CI_low),
+    color = "black",
+    width = 0,
+    linewidth = 0.7
+  ) +
+  geom_point(
+    shape = 16, size = 3,
+    colour = alpha(c(
+      "#FEAF77FF", "#F1605DFF", "#B63679FF",
+      "#721F81FF", "#2D1160FF", "#000004FF"),
+      0.7)
+  ) +
+  scale_y_continuous(
+    limits = c(-50, 39),
+    breaks = c(-40, -20, 0, 20)
+  ) +
+  xlab("Fire Treatment") +
+  ylab(NULL) +
+  MyTheme() +
+  annotate(
+    "text", x = 0.7, y = 39 * 0.975, 
+    label = "c", size = 5, fontface = "bold"
+  ) +
+  # Add pairwise comparisons
+  stat_pvalue_manual(
+    data = pairwise_plot_litter, 
+    y.position = 18,
+    step.increase = 0.048,
+    tip.length = 0.005,
+    bracket.size = 0.2,
+    label.size = 2.5,
+    label = "p_value"
+  ) +
+  coord_cartesian(
+    # This allows me to annotate outside panel borders, but it also emboldens
+    # the panel borders so include this line in all plots regardless of
+    # annotation
+    xlim = c(1, 6), clip = "off"
+  )
+
+# Relabel CN plot
+effects_CN_2 <- ggplot(
+  mean_effect_CN,
+  aes(x = treatment, y = Coefficient, fill = treatment)) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dotted",
+    linewidth = 0.5
+  ) +
+  geom_errorbar(
+    mapping = aes(x = treatment, ymax = CI_high, ymin = CI_low),
+    color = "black",
+    width = 0,
+    linewidth = 0.7
+  ) +
+  geom_point(
+    shape = 16, size = 3,
+    colour = alpha(c(
+      "#FEAF77FF", "#F1605DFF", "#B63679FF",
+      "#721F81FF", "#2D1160FF", "#000004FF"),
+      0.7)
+  ) +
+  scale_y_continuous(
+    limits = c(-10, 6.05),
+    breaks = c(-10, -5, 0, 5)
+  ) +
+  xlab("Fire Treatment") +
+  ylab(NULL) +
+  MyTheme() +
+  annotate(
+    "text", x = 0.7, y = 6.05 * 0.975, 
+    label = "d", size = 5, fontface = "bold"
+  ) +
+  # Add pairwise comparisons
+  stat_pvalue_manual(
+    data = pairwise_plot_CN, 
+    y.position = 0.70,
+    step.increase = 0.032,
     tip.length = 0.005,
     bracket.size = 0.2,
     label.size = 2.5,
@@ -1294,37 +1570,29 @@ effects_vegetation <- ggplot(
   )
 
 # Join and save components b and c of Figure 2
-SEM_plots <- 
-  effects_CN + effects_pH + 
+SEM_plots <-
+  effects_total_grass + effects_litter_2 +
+  effects_CN_2 +
   plot_layout(nrow = 1)
-ggsave("output/Figure2_bc.jpeg", width = 4.4, height = 2.4)
-ggsave("output/Figure2_bcd.tiff", width = 4.4, height = 2.4)
-ggsave("output/Figure2_bcd.pdf", width = 4.4, height = 2.4)
+ggsave("output/Sup_figure_bcd.jpeg", width = 6.6, height = 2.4)
+ggsave("output/Sup_figure_bcd.tiff", width = 6.4, height = 2.4)
+ggsave("output/Sup_figure_bcd.pdf", width = 6.4, height = 2.4)
 
 # Clean up the environment
-rm(list = ls())
+#rm(list = ls())
 
 ### (9) Structural equation models #############################################
 
 # Structural equation models are typically complex by design. They are intended
-# to contain X number of paths based on a priori model. As such, model selection
+# to contain a given number of paths based on a priori model. Model selection
 # typically does follow stepwise processes and traditional selection based
-# on an information criterion. In contrast, log-likelihood χ2 and Fishers C are
-# common method to assess SEM fit, and may result in the addition rather than 
-# subtraction of paths to capture underlying/missing interactions - but a priori
-# knowledge is a key component of SEMs and may allow a researcher to disregard
-# such statistics to a certain extent. However, a recent paper has identified
-# the need for a more 'traditional' SEM model selection approach in cases
-# where, for example, the variance of dependent variables is high, there are
-# high levels of multicollinearity, and sample size is relatively small 
-# (Garrido et al. (2022). A model selection approach to structural equation
-# modelling: A critical evaluation and a road map for ecologists. Methods in
-# Ecology and Evolution, 13(1), 42-53), all of which are present in our 
-# dataset. To that end, here I will fit fully saturated SEMs and follow a
-# backward stepwise approach the removal of the most insignificant variable
-# and stopping criteria of ΔAICc ≤ 2. I will then select my model based on AICc
-# and normalised model weight a using a ΔAICc ≤ 2 and normalised model weight 
-# change ≥ 55% as selection thresholds.
+# on information criterion. Log-likelihood χ2 and Fishers C are the most common
+# methods to assess SEM fit. However, here we follow a SEM model selection 
+# approach outliined by "Garrido et al. (2022). A model selection approach to 
+# structural equation modelling: A critical evaluation and a road map for 
+# ecologists. Methods in Ecology and Evolution, 13(1), 42-53". This is because
+# our sample size is small and including all variable would likely overfit the
+# model.
 
 # Read in the data:
 data <- read.csv("data/data.csv", stringsAsFactors = TRUE) %>%
@@ -1342,16 +1610,40 @@ data <- read.csv("data/data.csv", stringsAsFactors = TRUE) %>%
   mutate_at(vars(6:14), ~ as.vector(scale(.))) %>%
   glimpse(.)
 
-#### (9a) Fungi ####
+# Ensure 'treatment' is a factor
+data$treatment <- factor(data$treatment)
+
+# Check the unique levels of 'treatment'
+unique_levels <- levels(data$treatment)
+
+# Set sum contrasts
+contrasts(data$treatment) <- contr.treatment(unique_levels)
+
+#### (9a) Ancient and modern grass ####
 
 # A priori SEM
-sem_fungi_full <- psem(
+sem_ancient_modern_full_model <- psem(
   glmer(
-  fungi_abundance ~ treatment + modern_grass_cover + ancient_grass_cover +
-    litter_cover + organic_carbon + nitrogen + carbon_nitrogen_ratio + pH + 
+    bacteria_abundance ~ treatment + modern_grass_cover + ancient_grass_cover +
+      litter_cover + organic_carbon + nitrogen + carbon_nitrogen_ratio + pH + 
     (1 | block/sample_id),
   family = 'poisson',
   data
+  ),
+  
+  glmer(
+    fungi_abundance ~ treatment + modern_grass_cover + ancient_grass_cover +
+      litter_cover + organic_carbon + nitrogen + carbon_nitrogen_ratio + pH + 
+      (1 | block/sample_id),
+    family = 'poisson',
+    data
+  ),
+  
+  lmer(
+    fungi_bacteria_ratio ~ treatment + modern_grass_cover + ancient_grass_cover +
+      litter_cover + organic_carbon + nitrogen + carbon_nitrogen_ratio + pH + 
+      (1 | block),
+    data
   ),
   
   lmer(
@@ -1396,489 +1688,29 @@ sem_fungi_full <- psem(
   )
 )
 
-# Evaluate Significance values
-coefs(sem_fungi_full) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Here I will remove all variables with p-value > 0.2:
-# 'organic_carbon' 'treatment' and 'pH' from the 'fungi_abundance' model
-# 'organic_carbon', 'nitrogen', 'carbon_nitrogen_ratio' and 'pH' from the 'modern_grass_cover' model
-# 'organic_carbon', pH' from the 'ancient_grass_cover' model
-# 'modern_grass_cover', 'ancient_grass_cover', 'treatment' from the 'carbon' model
-# 'modern_grass_cover', 'ancient_grass_cover', 'litter_cover' from the 'carbon_nitrogen_ratio' model
-# the entire 'pH' model
-# Extract AICc
-aic_fungi_full <- AIC_psem(sem_fungi_full)$AICc
-# Reduced SEM 1
-sem_fungi_1 <- psem(
+# Reduced model after backward stepwise selection
+sem_ancient_modern_reduced_model <- psem(
+  
   glmer(
-    fungi_abundance ~ modern_grass_cover + ancient_grass_cover +
-      litter_cover + nitrogen + carbon_nitrogen_ratio +
-      (1 | block/sample_id),
-    family = 'poisson',
-    data
-  ),
-  
-  lmer(
-    modern_grass_cover ~ treatment + litter_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    ancient_grass_cover ~ treatment + litter_cover + nitrogen +
-      carbon_nitrogen_ratio + (1 | block),
-    data
-  ),
-  
-  lmer(
-    litter_cover ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    organic_carbon ~ litter_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    nitrogen ~ treatment + litter_cover + modern_grass_cover + 
-      ancient_grass_cover +  (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  )
-)
-
-# Evaluate Significance values
-coefs(sem_fungi_1) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Here I will remove all variables with p-value > 0.1:
-# Remove 'nitrogen' and 'carbon_nitrogen_ratio' from the 'ancient_grass_cover' model
-# Remove 'ancient_grass_cover' and 'treatment' from 'nitrogen' model
-# Extract AICc
-aic_fungi_1 <- AIC_psem(sem_fungi_1)$AICc
-# Compute delta AIC
-aic_fungi_full - aic_fungi_1
-
-# Reduced model 2
-sem_fungi_2 <- psem(
-  glmer(
-    fungi_abundance ~ modern_grass_cover + ancient_grass_cover +
-      litter_cover + nitrogen + carbon_nitrogen_ratio +
-      (1 | block/sample_id),
-    family = 'poisson',
-    data
-  ),
-  
-  lmer(
-    modern_grass_cover ~ treatment + litter_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    ancient_grass_cover ~ treatment + litter_cover +
-     (1 | block),
-    data
-  ),
-  
-  lmer(
-    litter_cover ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    organic_carbon ~ litter_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    nitrogen ~ litter_cover + modern_grass_cover + 
-      (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  )
-)
-
-# Evaluate Significance values
-coefs(sem_fungi_2) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove the 'modern_grass_cover' from the 'nitrogen' model
-# Extract AICc
-aic_fungi_2 <- AIC_psem(sem_fungi_2)$AICc
-# Compute delta AIC
-aic_fungi_1 - aic_fungi_2
-
-# Reduced model 3
-sem_fungi_3 <- psem(
-  glmer(
-    fungi_abundance ~ modern_grass_cover + ancient_grass_cover +
-      litter_cover + nitrogen + carbon_nitrogen_ratio +
-      (1 | block/sample_id),
-    family = 'poisson',
-    data
-  ),
-  
-  lmer(
-    modern_grass_cover ~ treatment + litter_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    ancient_grass_cover ~ treatment + litter_cover +
-      (1 | block),
-    data
-  ),
-  
-  lmer(
-    litter_cover ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    organic_carbon ~ litter_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    nitrogen ~ litter_cover +
-      (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  )
-)
-
-# Evaluate Significance values
-coefs(sem_fungi_3) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove the 'litter_cover' from the 'nitrogen' model
-# Extract AICc
-aic_fungi_3 <- AIC_psem(sem_fungi_3)$AICc
-# Compute delta AIC
-aic_fungi_2 - aic_fungi_3
-
-# Reduced model 4
-sem_fungi_4 <- psem(
-  glmer(
-    fungi_abundance ~ modern_grass_cover + ancient_grass_cover +
-      litter_cover + nitrogen + carbon_nitrogen_ratio +
-      (1 | block/sample_id),
-    family = 'poisson',
-    data
-  ),
-  
-  lmer(
-    modern_grass_cover ~ treatment + litter_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    ancient_grass_cover ~ treatment + litter_cover +
-      (1 | block),
-    data
-  ),
-  
-  lmer(
-    litter_cover ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    organic_carbon ~ litter_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  )
-)
-
-# Evaluate Significance values
-coefs(sem_fungi_4) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove the 'litter_cover' from the 'organic_carbon' model
-# Extract AICc
-aic_fungi_4 <- AIC_psem(sem_fungi_4)$AICc
-# Compute delta AIC
-aic_fungi_3 - aic_fungi_4
-
-# Reduced model 5
-sem_fungi_5 <- psem(
-  glmer(
-    fungi_abundance ~ modern_grass_cover + ancient_grass_cover +
-      litter_cover + nitrogen + carbon_nitrogen_ratio +
-      (1 | block/sample_id),
-    family = 'poisson',
-    data
-  ),
-  
-  lmer(
-    modern_grass_cover ~ treatment + litter_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    ancient_grass_cover ~ treatment + litter_cover +
-      (1 | block),
-    data
-  ),
-  
-  lmer(
-    litter_cover ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  )
-)
-
-# Evaluate Significance values
-coefs(sem_fungi_5) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove 'ancient_grass_cover' from 'fungi_abundance' model
-# Extract AICc
-aic_fungi_5 <- AIC_psem(sem_fungi_5)$AICc
-# Compute delta AIC
-aic_fungi_4 - aic_fungi_5
-
-# Reduced model 6
-sem_fungi_6 <- psem(
-  glmer(
-    fungi_abundance ~ total_grass_cover +
-      litter_cover + nitrogen + carbon_nitrogen_ratio +
-      (1 | block/sample_id),
-    family = 'poisson',
-    data
-  ),
-  
-  lmer(
-    total_grass_cover ~ treatment + litter_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    litter_cover ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  )
-)
-
-# Evaluate Significance values
-coefs(sem_fungi_6) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove 'carbon_nitrogen_ratio' from 'fungi_abundance' model
-# Extract AICc
-aic_fungi_6 <- AIC_psem(sem_fungi_6)$AICc
-# Compute delta AIC
-aic_fungi_5 - aic_fungi_6
-summary(sem_fungi_6)
-# Reduced model 6
-sem_fungi_7 <- psem(
-  glmer(
-    fungi_abundance ~ modern_grass_cover +
-      litter_cover + nitrogen + 
-      (1 | block/sample_id),
-    family = 'poisson',
-    data
-  ),
-  
-  lmer(
-    modern_grass_cover ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    ancient_grass_cover ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    litter_cover ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    pH ~ treatment + (1 | block),
-    data
-  )
-)
-# Evaluate Significance values
-coefs(sem_fungi_7) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove 'carbon_nitrogen_ratio' from 'fungi_abundance' model
-# Extract AICc
-aic_fungi_7 <- AIC_psem(sem_fungi_7)$AICc
-# Compute delta AIC
-aic_fungi_6 - aic_fungi_7
-# !!!Stop!!!
-
-# Create a list of models
-sem_models_fungi <- list(
-  sem_fungi_full, sem_fungi_1, sem_fungi_2, sem_fungi_3, sem_fungi_4,
-  sem_fungi_5, sem_fungi_6, sem_fungi_7
-)
-
-# Combine LLChisq stats:
-
-# Step 1: Extract and format LLChisq stats
-LLChisq_fungi <- map(
-  sem_models_fungi, ~ LLchisq(.x) %>%
-    mutate(
-      formatted_result = sprintf("%.2f(%d), p = %.3f", Chisq, df, P.Value)
-      ) %>%
-    pull(formatted_result)
-)
-
-# Step 2: Combine the formatted results into a single vector
-LLChisq_fungi <- unlist(LLChisq_fungi)
-
-# Combine FisherC stats:
-
-# Step 1: Create an empty list to store results
-Fisher_C_fungi_list <- list()
-
-# Step 2: Loop through the list of SEM models
-for (model in sem_models_fungi) {
-  # Extract FisherC stats
-  fisher_c_stats <- summary(model) %>%
-    unlist(.) %>%
-    as.data.frame(
-      ., stringsAsFactors = FALSE
-    ) %>%
-    rownames_to_column(var = "name") %>%
-    filter(
-      name %in% c("Cstat.Fisher.C", "Cstat.df", "Cstat.P.Value")
-    ) %>%
-    column_to_rownames(var = "name") %>%
-    mutate(across(everything(), as.numeric)) %>%
-    t(.) %>%
-    as_tibble(.) %>%
-    mutate(
-      formatted_result = sprintf(
-        "%.2f(%d), p = %.3f",
-        Cstat.Fisher.C, Cstat.df, Cstat.P.Value)
-    ) %>%
-    pull(formatted_result)
-  
-  # Append the results to the list
-  Fisher_C_fungi_list[[length(Fisher_C_fungi_list) + 1]] <- fisher_c_stats
-}
-
-# Step 3: Combine the formatted results into a single vector
-Fisher_C_fungi <- unlist(Fisher_C_fungi_list)
-
-# Combine model structures:
-
-# Step 1: Create an empty list to store results
-model_call_list <- list()
-
-# Step 2: Loop through the list of SEM models
-for (model in sem_models_fungi) {
-  # Extract call information
-  call_info <- summary(model) %>%
-    unlist(.) %>%
-    as.data.frame(
-      ., stringsAsFactors = FALSE
-    ) %>%
-    slice(2) %>%
-    pull()
-  
-  # Assign column names to the call information
-  names(call_info) <- "call"
-  
-  # Store the call information in the list
-  model_call_list[[length(model_call_list) + 1]] <- call_info
-}
-
-# Step 3: Reduce to a single data frame
-model_call_df <- bind_rows(model_call_list, .id = "model")
-
-# Compute standardised model weights:
-
-# Step 1: Combine AIC values
-aic_values <- c(
-  aic_fungi_full, aic_fungi_1, aic_fungi_2, aic_fungi_3, aic_fungi_4,
-  aic_fungi_5, aic_fungi_6, aic_fungi_7
-  )
-
-# Step 2: Identify the model with the lowest AIC
-best_model_index <- which.min(aic_values)
-
-# Step 3: Calculate the difference in AIC for each model
-delta_aic <- aic_values - aic_values[best_model_index]
-
-# Step 4: Compute unnormalised weights
-weights <- exp(-delta_aic / 2)
-
-# Step 5: Normalise weights
-normalised_weights <- weights / sum(weights)
-
-# Step6: Assess the results
-SEM_fit_fungi <- data.frame(
-  model = c("full", 2:length(aic_values)-1), 
-  AIC = aic_values, 
-  Δ_AIC = delta_aic,
-  model_weight = round(normalised_weights, digits = 3)
-) %>%
-  mutate(
-    Δ_model_weight = c(0, diff(model_weight)),
-    "LL_χ2(df)" = LLChisq_fungi,
-    "Fisher_C(df)" = Fisher_C_fungi,
-    model_structure = model_call_df$call
-  ) %>%
-  print(.)
-
-# Grab coefficients of the best-fit model
-SEM_coefs_fungi <- coefs(sem_fungi_5)
-
-#### (9b) Bacteria ##### 
-
-# A priori SEM
-sem_bacteria_full <- psem(
-  glmer(
-    bacteria_abundance ~ treatment + total_grass_cover + ancient_grass_cover + 
+    bacteria_abundance ~ treatment + modern_grass_cover + ancient_grass_cover +
       litter_cover + organic_carbon + nitrogen +
-      carbon_nitrogen_ratio + pH + (1 | block/sample_id),
+      (1 | block/sample_id),
+    family = 'poisson',
+    data
+  ),
+  
+  glmer(
+    fungi_abundance ~ modern_grass_cover + ancient_grass_cover +
+      litter_cover + carbon_nitrogen_ratio + nitrogen +
+      (1 | block/sample_id),
     family = 'poisson',
     data
   ),
   
   lmer(
-    total_grass_cover ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    ancient_grass_cover ~ treatment + (1 | block),
+    fungi_bacteria_ratio ~
+      organic_carbon + nitrogen + carbon_nitrogen_ratio +
+      (1 | block),
     data
   ),
   
@@ -1888,862 +1720,142 @@ sem_bacteria_full <- psem(
   ),
   
   lmer(
+    ancient_grass_cover ~ treatment + (1 | block),
+    data
+  ),
+  
+  lmer(
     litter_cover ~ treatment + (1 | block),
     data
   ),
   
   lmer(
-    organic_carbon ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    nitrogen ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
     carbon_nitrogen_ratio ~ treatment + (1 | block),
     data
   ),
   
   lmer(
-    pH ~ treatment + (1 | block),
+    pH ~
+      litter_cover + (1 | block),
     data
   )
 )
 
-# Evaluate Significance values
-coefs(sem_bacteria_full) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove 'pH' from the 'bacteria_abundance' model
-# Extract AICc
-aic_bacteria_full <- AIC_psem(sem_bacteria_full)$AICc
-
-# Reduced SEM 1
-sem_bacteria_1 <- psem(
-  glmer(
-    bacteria_abundance ~ treatment + organic_carbon + log(nitrogen) + 
-      carbon_nitrogen_ratio + vegetation_cover + (1 | block/sample_id),
-    family = 'poisson',
-    data
-    ),
-  
-  lmer(
-    organic_carbon ~ treatment + (1 | block),
-    data
-    ),
-  
-  lmer(
-    log(nitrogen) ~ treatment + (1 | block),
-    data
-    ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-    ),
-  
-  lmer(
-    pH ~ treatment + (1 | block),
-    data
-    ),
-    
-  lmer(
-    vegetation_cover ~ treatment + (1 | block),
-    data
-  )
-)
-# Evaluate Significance values
-coefs(sem_bacteria_1) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove 'organic_carbon ~ treatment' model
-# Extract AICc
-aic_bacteria_1 <- AIC_psem(sem_bacteria_1)$AICc
-# Compute delta AIC
-aic_bacteria_full - aic_bacteria_1
-
-# Reduced model 2
-sem_bacteria_2 <- psem(
-  glmer(
-    bacteria_abundance ~ treatment + log(nitrogen) + organic_carbon +
-      carbon_nitrogen_ratio + vegetation_cover + (1 | block/sample_id),
-    family = 'poisson',
-    data
-  ),
-  
-  lmer(
-    log(nitrogen) ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    pH ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    vegetation_cover ~ treatment + (1 | block),
-    data
-  )
-)
-# Evaluate Significance values
-coefs(sem_bacteria_2) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove 'log(nitrogen)' from the 'bacteria_abundance' model
-# Extract AICc
-aic_bacteria_2 <- AIC_psem(sem_bacteria_2)$AICc
-# Compute delta AIC
-aic_bacteria_1 - aic_bacteria_2
-
-# Reduced model 3
-sem_bacteria_3 <- psem(
-  glmer(
-    bacteria_abundance ~ treatment + organic_carbon +
-      carbon_nitrogen_ratio + vegetation_cover + (1 | block/sample_id),
-    family = 'poisson',
-    data
-  ),
-  
-  
-  lmer(
-    log(nitrogen) ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    pH ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    vegetation_cover ~ treatment + (1 | block),
-    data
-  )
-)
-# Evaluate Significance values
-coefs(sem_bacteria_3) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove the 'log(nitrogen) ~ treatment' model
-# Extract AICc
-aic_bacteria_3 <- AIC_psem(sem_bacteria_3)$AICc
-# Compute delta AIC
-aic_bacteria_2 - aic_bacteria_3
-
-# Reduced model 4
-sem_bacteria_4 <- psem(
-  glmer(
-    bacteria_abundance ~ treatment + organic_carbon +
-      carbon_nitrogen_ratio + vegetation_cover + (1 | block/sample_id),
-    family = 'poisson',
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    pH ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    vegetation_cover ~ treatment + (1 | block),
-    data
-  )
-)
-# Evaluate Significance values
-coefs(sem_bacteria_4) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove 'vegetation_cover ~ treatment' model
-# Extract AICc
-aic_bacteria_4 <- AIC_psem(sem_bacteria_4)$AICc
-# Compute delta AIC
-aic_bacteria_3 - aic_bacteria_4
-
-# Reduced model 5
-sem_bacteria_5 <- psem(
-  glmer(
-    bacteria_abundance ~ treatment + scale(organic_carbon) +
-      scale(carbon_nitrogen_ratio) + scale(vegetation_cover) + (1 | block/sample_id),
-    family = 'poisson',
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    pH ~ treatment + (1 | block),
-    data
-  )
-)
-
-# Evaluate Significance values
-coefs(sem_bacteria_5) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove 'carbon_nitrogen_ratio' from the 'bacteria_abundance' model
-# Extract AICc
-aic_bacteria_5 <- AIC_psem(sem_bacteria_5)$AICc
-# Compute delta AIC
-aic_bacteria_4 - aic_bacteria_5
-
-# Reduced model 6
-sem_bacteria_6 <- psem(
-  glmer(
-    bacteria_abundance ~ treatment + organic_carbon +
-      vegetation_cover + (1 | block/sample_id),
-    family = 'poisson',
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    pH ~ treatment + (1 | block),
-    data
-  )
-)
-
-# Evaluate Significance values
-coefs(sem_bacteria_6) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove the 'pH ~ treatment' model
-# Extract AICc
-aic_bacteria_6 <- AIC_psem(sem_bacteria_6)$AICc
-# Compute delta AIC
-aic_bacteria_5 - aic_bacteria_6
-# !!!Stop!!!
-
-# Create a list of models
-sem_models_bacteria <- list(
-  sem_bacteria_full, sem_bacteria_1, sem_bacteria_2, sem_bacteria_3, 
-  sem_bacteria_4, sem_bacteria_5, sem_bacteria_5
-)
-
-# Combine LLChisq stats
-
-# Step 1: Extract and format LLChisq stats
-LLChisq_bacteria <- map(
-  sem_models_bacteria, ~ LLchisq(.x) %>%
-    mutate(
-      formatted_result = sprintf("%.2f(%d), p = %.3f", Chisq, df, P.Value)
-    ) %>%
-    pull(formatted_result)
-)
-
-# Step 2: Combine the formatted results into a single vector
-LLChisq_bacteria <- unlist(LLChisq_bacteria)
-
-# Combine FisherC stats:
-
-# Step 1: Create an empty list to store results
-Fisher_C_bacteria_list <- list()
-
-# Step 2: Loop through the list of SEM models
-for (model in sem_models_bacteria) {
-  # Extract FisherC stats
-  fisher_c_stats <- summary(model) %>%
-    unlist(.) %>%
-    as.data.frame(
-      ., stringsAsFactors = FALSE
-    ) %>%
-    rownames_to_column(var = "name") %>%
-    filter(
-      name %in% c("Cstat.Fisher.C", "Cstat.df", "Cstat.P.Value")
-    ) %>%
-    column_to_rownames(var = "name") %>%
-    mutate(across(everything(), as.numeric)) %>%
-    t(.) %>%
-    as_tibble(.) %>%
-    mutate(
-      formatted_result = sprintf(
-        "%.2f(%d), p = %.3f",
-        Cstat.Fisher.C, Cstat.df, Cstat.P.Value)
-    ) %>%
-    pull(formatted_result)
-  
-  # Append the results to the list
-  Fisher_C_bacteria_list[[length(Fisher_C_bacteria_list) + 1]] <- fisher_c_stats
-}
-
-# Step 3: Combine the formatted results into a single vector
-Fisher_C_bacteria <- unlist(Fisher_C_bacteria_list)
-
-# Combine model structures:
-
-# Step 1: Create an empty list to store results
-model_call_list <- list()
-
-# Step 2: Loop through the list of SEM models
-for (model in sem_models_bacteria) {
-  # Extract call information
-  call_info <- summary(model) %>%
-    unlist(.) %>%
-    as.data.frame(
-      ., stringsAsFactors = FALSE
-    ) %>%
-    slice(2) %>%
-    pull()
-  
-  # Assign column names to the call information
-  names(call_info) <- "call"
-  
-  # Store the call information in the list
-  model_call_list[[length(model_call_list) + 1]] <- call_info
-}
-
-# Step 3: Reduce to a single data frame
-model_call_df <- bind_rows(model_call_list, .id = "model")
-
-# Compute standardised model weights:
-
-# Step 1: Combine AIC values
-aic_values <- c(
-  aic_bacteria_full, aic_bacteria_1, aic_bacteria_2, aic_bacteria_3,
-  aic_bacteria_4, aic_bacteria_5,aic_bacteria_6
-)
-
-# Step 2: Identify the model with the lowest AIC
-best_model_index <- which.min(aic_values)
-
-# Step 3: Calculate the difference in AIC for each model
-delta_aic <- aic_values - aic_values[best_model_index]
-
-# Step 4: Compute unnormalised weights
-weights <- exp(-delta_aic / 2)
-
-# Step 5: Normalise weights
-normalised_weights <- weights / sum(weights)
-
-# Step6: Assess the results
-SEM_fit_bacteria <- data.frame(
-  model = c("full", 2:length(aic_values)-1), 
-  AIC = aic_values, 
-  Δ_AIC = delta_aic,
-  model_weight = round(normalised_weights, digits = 3)
-) %>%
-  mutate(
-    Δ_model_weight = c(0, diff(model_weight)),
-    #"LL_χ2(df)" = LLChisq_bacteria,
-    "Fisher_C(df)" = Fisher_C_bacteria,
-    model_structure = model_call_df$call
-  ) %>%
-  print(.)
-
-# Grab coefficients of the best-fit model
-SEM_coefs_bacteria <- coefs(sem_bacteria_5)
-
-#### (9c) Fungi to bacteria ratio ##### 
+#### (9b) Total grass ####
 
 # A priori SEM
-sem_ratio_full <- psem(
-  lmer(
-    fungi_bacteria_ratio ~ treatment + organic_carbon + log(nitrogen) + 
-      carbon_nitrogen_ratio + pH + vegetation_cover + (1 | block),
+sem_total_full_model <- psem(
+  glmer(
+    bacteria_abundance ~ treatment + total_grass_cover +
+      litter_cover + organic_carbon + nitrogen + carbon_nitrogen_ratio + pH + 
+      (1 | block/sample_id),
+    family = 'poisson',
+    data
+  ),
+  
+  glmer(
+    fungi_abundance ~ treatment + total_grass_cover +
+      litter_cover + organic_carbon + nitrogen + carbon_nitrogen_ratio + pH + 
+      (1 | block/sample_id),
+    family = 'poisson',
     data
   ),
   
   lmer(
-    organic_carbon ~ treatment + (1 | block),
+    fungi_bacteria_ratio ~ treatment + total_grass_cover +
+      litter_cover + organic_carbon + nitrogen + carbon_nitrogen_ratio + pH + 
+      (1 | block),
     data
   ),
   
   lmer(
-    log(nitrogen) ~ treatment + (1 | block),
+    total_grass_cover ~ treatment + litter_cover + organic_carbon + nitrogen +
+      carbon_nitrogen_ratio + pH + (1 | block),
+    data
+  ),
+
+  lmer(
+    litter_cover ~ treatment + (1 | block),
     data
   ),
   
   lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
+    organic_carbon ~ treatment + litter_cover + total_grass_cover + 
+      (1 | block),
     data
   ),
   
   lmer(
-    pH ~ treatment + (1 | block),
+    nitrogen ~ treatment + litter_cover + total_grass_cover + 
+      (1 | block),
     data
   ),
   
   lmer(
-    vegetation_cover ~ treatment + (1 | block),
+    carbon_nitrogen_ratio ~ treatment + litter_cover + total_grass_cover + 
+      (1 | block),
+    data
+  ),
+  
+  lmer(
+    pH ~ treatment + litter_cover + total_grass_cover + 
+      (1 | block),
     data
   )
 )
-# Evaluate Significance values
-coefs(sem_ratio_full) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove the 'organic_carbon ~ treatment' model
-# Extract AICc
-aic_ratio_full <- AIC_psem(sem_ratio_full)$AICc
 
-# Reduced SEM 1
-sem_ratio_1 <- psem(
-  lmer(
-    fungi_bacteria_ratio ~ treatment + organic_carbon + log(nitrogen) + 
-      carbon_nitrogen_ratio + pH + vegetation_cover + (1 | block),
+# Reduced model after backward stepwise selection
+sem_total_reduced_model <- psem(
+  glmer(
+    bacteria_abundance ~ treatment + total_grass_cover +
+      litter_cover + organic_carbon + nitrogen +
+      (1 | block/sample_id),
+    family = 'poisson',
+    data
+  ),
+  
+  glmer(
+    fungi_abundance ~ treatment +
+      litter_cover + nitrogen + carbon_nitrogen_ratio +
+      (1 | block/sample_id),
+    family = 'poisson',
     data
   ),
   
   lmer(
-    log(nitrogen) ~ treatment + (1 | block),
+    fungi_bacteria_ratio ~
+      carbon_nitrogen_ratio +
+      (1 | block),
     data
   ),
   
   lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
+    total_grass_cover ~ treatment +
+      (1 | block),
     data
   ),
   
   lmer(
-    pH ~ treatment + (1 | block),
+    litter_cover ~ treatment +
+      (1 | block),
     data
   ),
   
   lmer(
-    vegetation_cover ~ treatment + (1 | block),
+    organic_carbon ~
+      litter_cover + (1 | block),
+    data
+  ),
+  
+  lmer(
+    carbon_nitrogen_ratio ~ treatment + total_grass_cover + 
+      (1 | block),
+    data
+  ),
+  
+  lmer(
+    pH ~ total_grass_cover +
+      (1 | block),
     data
   )
 )
-# Evaluate significance values
-coefs(sem_ratio_1) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove the 'treatment' from the 'fungi_bacteria_ratio' model
-# Extract AICc
-aic_ratio_1 <- AIC_psem(sem_ratio_1)$AICc
-# Compute delta AIC
-aic_ratio_full - aic_ratio_1
-
-# Reduced model 2
-sem_ratio_2 <- psem(
-  lmer(
-    fungi_bacteria_ratio ~ organic_carbon + log(nitrogen) + 
-      carbon_nitrogen_ratio + pH + vegetation_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    log(nitrogen) ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    pH ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    vegetation_cover ~ treatment + (1 | block),
-    data
-  )
-)
-# Evaluate Significance values
-coefs(sem_ratio_2) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove 'pH' from the 'fungi_bacteria_ratio' model
-# Extract AICc
-aic_ratio_2 <- AIC_psem(sem_ratio_2)$AICc
-# Compute delta AIC
-aic_ratio_1 - aic_ratio_2
-
-# Reduced model 3
-sem_ratio_3 <- psem(
-  lmer(
-    fungi_bacteria_ratio ~ organic_carbon + log(nitrogen) + 
-      carbon_nitrogen_ratio + vegetation_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    log(nitrogen) ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    pH ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    vegetation_cover ~ treatment + (1 | block),
-    data
-  )
-)
-# Evaluate Significance values
-coefs(sem_ratio_3) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove the 'log(nitrogen) ~ treatment' model
-# Extract AICc
-aic_ratio_3 <- AIC_psem(sem_ratio_3)$AICc
-# Compute delta AIC
-aic_ratio_2 - aic_ratio_3
-
-# Reduced model 4
-sem_ratio_4 <- psem(
-  lmer(
-    fungi_bacteria_ratio ~ organic_carbon + log(nitrogen) + 
-      carbon_nitrogen_ratio + vegetation_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    pH ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    vegetation_cover ~ treatment + (1 | block),
-    data
-  )
-)
-# Evaluate Significance values
-coefs(sem_ratio_4) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove 'log(nitrogen)' from the 'fungi_bacteria_ratio' model
-# Extract AICc
-aic_ratio_4 <- AIC_psem(sem_ratio_4)$AICc
-# Compute delta AIC
-aic_ratio_3 - aic_ratio_4
-
-# Reduced model 5
-sem_ratio_5 <- psem(
-  lmer(
-    fungi_bacteria_ratio ~ organic_carbon +
-      carbon_nitrogen_ratio + vegetation_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    pH ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    vegetation_cover ~ treatment + (1 | block),
-    data
-  )
-)
-# Evaluate Significance values
-coefs(sem_ratio_5) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove 'organic_carbon' from 'fungi_bacteria_ratio' model
-# Extract AICc
-aic_ratio_5 <- AIC_psem(sem_ratio_5)$AICc
-# Compute delta AIC
-aic_ratio_4 - aic_ratio_5
-
-# Reduced model 6
-sem_ratio_6 <- psem(
-  lmer(
-    fungi_bacteria_ratio ~ 
-      carbon_nitrogen_ratio + vegetation_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    pH ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    vegetation_cover ~ treatment + (1 | block),
-    data
-  )
-)
-# Evaluate Significance values
-coefs(sem_ratio_6) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove 'carbon_nitrogen_ratio' from 'fungi_bacteria_ratio' model
-# Extract AICc
-aic_ratio_6 <- AIC_psem(sem_ratio_6)$AICc
-# Compute delta AIC
-aic_ratio_5 - aic_ratio_6
-
-# Reduced model 7
-sem_ratio_7 <- psem(
-  lmer(
-    fungi_bacteria_ratio ~ vegetation_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    pH ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    vegetation_cover ~ treatment + (1 | block),
-    data
-  )
-)
-# Evaluate Significance values
-coefs(sem_ratio_7) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove the 'vegetation_cover ~ treatment' model
-# Extract AICc
-aic_ratio_7 <- AIC_psem(sem_ratio_7)$AICc
-# Compute delta AIC
-aic_ratio_6 - aic_ratio_7
-
-# Reduced model 8
-sem_ratio_8 <- psem(
-  lmer(
-    fungi_bacteria_ratio ~ vegetation_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  ),
-  
-  lmer(
-    pH ~ treatment + (1 | block),
-    data
-  )
-)
-# Evaluate Significance values
-coefs(sem_ratio_8) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove the 'pH ~ treatment' model
-# Extract AICc
-aic_ratio_8 <- AIC_psem(sem_ratio_8)$AICc
-# Compute delta AIC
-aic_ratio_7 - aic_ratio_8
-
-# Reduced model 9
-sem_ratio_9 <- psem(
-  lmer(
-    fungi_bacteria_ratio ~ vegetation_cover + (1 | block),
-    data
-  ),
-  
-  lmer(
-    carbon_nitrogen_ratio ~ treatment + (1 | block),
-    data
-  )
-)
-# Evaluate Significance values
-coefs(sem_ratio_9) %>%
-  select(Response, Predictor, Crit.Value, P.Value) %>%
-  filter(!str_detect(Predictor, "treatment ="))
-# Remove the 'pH ~ treatment' model
-# Extract AICc
-aic_ratio_9 <- AIC_psem(sem_ratio_9)$AICc
-# Compute delta AIC
-aic_ratio_8 - aic_ratio_9
-# !!!Stop!!!
-
-# Create a list of models
-sem_models_ratio <- list(
-  sem_ratio_full, sem_ratio_1, sem_ratio_2, sem_ratio_3, 
-  sem_ratio_4, sem_ratio_5, sem_ratio_6, sem_ratio_7, 
-  sem_ratio_8
-)
-
-# Combine LLChisq stats
-
-# Step 1: Extract and format LLChisq stats
-LLChisq_ratio <- map(
-  sem_models_ratio, ~ LLchisq(.x) %>%
-    mutate(
-      formatted_result = sprintf("%.2f(%d), p = %.3f", Chisq, df, P.Value)
-    ) %>%
-    pull(formatted_result)
-)
-
-# Step 2: Combine the formatted results into a single vector
-LLChisq_ratio <- unlist(LLChisq_ratio)
-
-# Combine FisherC stats:
-
-# Step 1: Create an empty list to store results
-Fisher_C_ratio_list <- list()
-
-# Step 2: Loop through the list of SEM models
-for (model in sem_models_ratio) {
-  # Extract FisherC stats
-  fisher_c_stats <- summary(model) %>%
-    unlist(.) %>%
-    as.data.frame(
-      ., stringsAsFactors = FALSE
-    ) %>%
-    rownames_to_column(var = "name") %>%
-    filter(
-      name %in% c("Cstat.Fisher.C", "Cstat.df", "Cstat.P.Value")
-    ) %>%
-    column_to_rownames(var = "name") %>%
-    mutate(across(everything(), as.numeric)) %>%
-    t(.) %>%
-    as_tibble(.) %>%
-    mutate(
-      formatted_result = sprintf(
-        "%.2f(%d), p = %.3f",
-        Cstat.Fisher.C, Cstat.df, Cstat.P.Value)
-    ) %>%
-    pull(formatted_result)
-  
-  # Append the results to the list
-  Fisher_C_ratio_list[[length(Fisher_C_ratio_list) + 1]] <- fisher_c_stats
-}
-
-# Step 3: Combine the formatted results into a single vector
-Fisher_C_ratio <- unlist(Fisher_C_ratio_list)
-
-# Combine model structures:
-
-# Step 1: Create an empty list to store results
-model_call_list <- list()
-
-# Step 2: Loop through the list of SEM models
-for (model in sem_models_ratio) {
-  # Extract call information
-  call_info <- summary(model) %>%
-    unlist(.) %>%
-    as.data.frame(
-      ., stringsAsFactors = FALSE
-    ) %>%
-    slice(2) %>%
-    pull()
-  
-  # Assign column names to the call information
-  names(call_info) <- "call"
-  
-  # Store the call information in the list
-  model_call_list[[length(model_call_list) + 1]] <- call_info
-}
-
-# Step 3: Reduce to a single data frame
-model_call_df <- bind_rows(model_call_list, .id = "model")
-
-# Compute standardised model weights:
-
-# Step 1: Combine AIC values
-aic_values <- c(
-  aic_ratio_full, aic_ratio_1, aic_ratio_2, aic_ratio_3,
-  aic_ratio_4, aic_ratio_5, aic_ratio_6, aic_ratio_7,
-  aic_ratio_8
-)
-
-# Step 2: Identify the model with the lowest AIC
-best_model_index <- which.min(aic_values)
-
-# Step 3: Calculate the difference in AIC for each model
-delta_aic <- aic_values - aic_values[best_model_index]
-
-# Step 4: Compute unnormalised weights
-weights <- exp(-delta_aic / 2)
-
-# Step 5: Normalise weights
-normalised_weights <- weights / sum(weights)
-
-# Step 6: Assess the results
-SEM_fit_ratio <- data.frame(
-  model = c("full", 2:length(aic_values)-1), 
-  AIC = aic_values, 
-  Δ_AIC = delta_aic,
-  model_weight = round(normalised_weights, digits = 3)
-) %>%
-  mutate(
-    Δ_model_weight = c(0, diff(model_weight)),
-    "LL_χ2(df)" = LLChisq_ratio,
-    "Fisher_C(df)" = Fisher_C_ratio,
-    model_structure = model_call_df$call
-  ) %>%
-  print(.)
-
-# Grab coefficients of the best-fit model
-SEM_coefs_ratio <- coefs(sem_ratio_8)
-
-#### (9d) Save the SEM test statistics ####
-
-# Read in the test statistics workbook
-test_statistics_wb <- loadWorkbook(
-  "output/test_statistics.xlsx"
-  )
-
-# Define sheet names
-sheet_names <- c(
-  "SEM_fit_fungi", "SEM_fit_bacteria","SEM_fit_ratio",
-  "SEM_coefs_fungi", "SEM_coefs_bacteria", "SEM_coefs_ratio"
-  )
-
-# Loop through sheet names
-for (sheet_name in sheet_names) {
-  # Add worksheet
-  addWorksheet(test_statistics_wb, sheet_name)
-  
-  # Get the corresponding data frame based on sheet_name
-  df <- get(sheet_name)
-  
-  # Write data to the sheet
-  writeData(test_statistics_wb, sheet = sheet_name, x = df)
-}
-
-# Check the sheets have been written
-read.xlsx(test_statistics_wb, sheet = "SEM_fit_fungi")
-
-# Save the workbook
-saveWorkbook(test_statistics_wb, overwrite = TRUE, "output/test_statistics.xlsx")
